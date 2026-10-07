@@ -202,6 +202,31 @@ table(DF$hospdead, useNA="always")
 
 ### Caso 2: Varianza Muestral
 
+**Escenario:** Se requiere calcular el tamaño de muestra necesario para estimar la varianza de la presión arterial media (`meanbp`) de los pacientes, con un nivel de confianza del 96% y una tolerancia (error máximo permitido) de 100 unidades cuadradas en la varianza.
+
+**Suposiciones y Fundamentación:** Para que la distribución de la varianza muestral ($S^2$) se modele utilizando la distribución Chi-Cuadrado ($\chi^2$), es un requisito teórico estricto asumir que la variable aleatoria de interés en la población (en este caso, `meanbp`) sigue una **distribución Normal**. Si la población no es normal, la varianza muestral no seguirá exactamente una distribución Chi-Cuadrado.
+
+**Cálculo del tamaño de muestra (n):**
+
+```{r}
+# 1. Datos poblacionales extraídos de la Parte 2
+varianza_pob <- sigma_meanbp^2 # Varianza poblacional de meanbp
+confianza <- 0.96
+alfa <- 1 - confianza
+
+# 2. Definir la tolerancia (Error máximo que permitimos para la varianza)
+# La varianza es un valor grande (aprox 766), le damos una tolerancia acorde:
+Tolerancia_var <- 100 
+
+# 3. Cálculo de 'n' usando aproximación normal para la varianza
+# (Fórmula clásica para el tamaño de muestra de una varianza)
+Z_critico <- qnorm(1 - alfa/2)
+
+n_var_meanbp <- ceiling( 2 * (Z_critico * varianza_pob / Tolerancia_var)^2 ) + 1
+
+n_var_meanbp
+```
+
 ### Caso 3: Proporción Muestral
 
 ### Caso 4: Razón de Varianzas
