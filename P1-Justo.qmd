@@ -1,0 +1,211 @@
+---
+title: "P1-Justo"
+format: html
+editor: visual
+---
+
+```{r}
+library(readr)
+```
+
+```{r}
+DF <- read.csv("support2.csv")
+DF
+```
+
+## Parte 1: Hallar tamaño de la muestra
+
+1.  Las variables que usaremos para encontrar su tamaño de muestra son: "age", "meanbp", "hrt", "sex", "diabetes" y "hospdead"
+
+### Variables Cualitativas
+
+```{r}
+#media y desviacion de "age"
+mean_age <- mean(DF$age, na.rm = T)
+mean_age
+sd_age <- sd(DF$age, na.rm=T)
+sd_age
+
+#media y desviacion de "meanbp"
+mean_meanbp <-mean(DF$meanbp, na.rm = T)
+mean_meanbp
+sd_meanbp <- sd(DF$meanbp, na.rm = T)
+sd_meanbp
+
+#media y desviacion de "hrt"
+mean_hrt <-mean(DF$hrt, na.rm = T)
+mean_hrt
+sd_hrt <- sd(DF$hrt, na.rm = T)
+sd_hrt
+```
+
+- Tamaño de muestra age
+
+```{r}
+#datos de age:
+sigma= sd_age
+confianza=0.96
+Tolerancia=1.5
+
+#cálculos:
+alfa<-1-confianza
+Vcritico<-qnorm(1-alfa/2, 0, 1)
+n_age<- ceiling((Vcritico*sigma/Tolerancia)^2)
+n_age
+```
+
+n_age = 456
+
+- Tamaño de muestra de meanbp
+
+```{r}
+#datos de meanbp:
+sigma= sd_meanbp
+confianza=0.96
+Tolerancia=2.6
+
+#cálculos:
+alfa<-1-confianza
+Vcritico<-qnorm(1-alfa/2, 0, 1)
+n_meanbp<- ceiling((Vcritico*sigma/Tolerancia)^2)
+n_meanbp
+```
+
+n_meanbp = 479
+
+- Tamaño de muestra de hrt
+
+```{r}
+#datos de hrt:
+sigma= sd_hrt
+confianza=0.96
+Tolerancia=3
+
+#cálculos:
+alfa<-1-confianza
+Vcritico<-qnorm(1-alfa/2, 0, 1)
+n_hrt<- ceiling((Vcritico*sigma/Tolerancia)^2)
+n_hrt
+```
+
+n_hrt = 467
+
+### Variables Cualitativas
+
+- Tamaño de muestra de sex
+
+```{r}
+# datos para sex:
+po=0.5 #NO CAMBIAR NUNCA, en cualitativos no tocar este valor
+confianza=0.96#nivel de confianza (dato)
+Tolerancia=0.05 #tolerancia (en proporciones la tolerancia no pasa de 1)
+
+#cálculos:
+alfa<-1-confianza
+Vcritico<-qnorm(1-alfa/2, 0, 1)
+n_sex<- ceiling(po*(1-po)*(Vcritico/Tolerancia)^2)
+n_sex
+```
+
+n_sex = 422
+
+- Tamaño de muestra de diabetes
+
+```{r}
+# datos para diabetes:
+po=0.5 #NO CAMBIAR NUNCA, en cualitativos no tocar este valor
+confianza=0.96#nivel de confianza (dato)
+Tolerancia=0.05 #tolerancia (en proporciones la tolerancia no pasa de 1)
+
+#cálculos:
+alfa<-1-confianza
+Vcritico<-qnorm(1-alfa/2, 0, 1)
+n_diabetes<- ceiling(po*(1-po)*(Vcritico/Tolerancia)^2)
+n_diabetes
+```
+
+n_diabetes = 422
+
+- Tamaño de muestra de hospdead
+
+```{r}
+# datos para hospdead:
+po=0.5 #NO CAMBIAR NUNCA, en cualitativos no tocar este valor
+confianza=0.96#nivel de confianza (dato)
+Tolerancia=0.05 #tolerancia (en proporciones la tolerancia no pasa de 1)
+
+#cálculos:
+alfa<-1-confianza
+Vcritico<-qnorm(1-alfa/2, 0, 1)
+n_hospdead<- ceiling(po*(1-po)*(Vcritico/Tolerancia)^2)
+n_hospdead
+```
+
+n_hospdead = 422
+
+### Tabla de tamaños de muestra finales
+
+| Variable | Tipo | Desviación o proporción | Tolerancia | n (hallado con el código) |
+|---------------|---------------|---------------|---------------|---------------|
+| age | Cuantitativa | 15.5937 | 1.5 | 456 |
+| meanbp | Cuantitativa | 27.6877 | 2.6 | 479 |
+| hrt | Cuantitativa | 31.5593 | 3 | 467 |
+| sex | Cualitativa | po = 0.5 | 0.05 | 422 |
+| diabetes | Cualitativa | po = 0.5 | 0.05 | 422 |
+| hospdead | Cualitativa | po = 0.5 | 0.05 | 422 |
+
+```{r}
+#Tamaño de n final
+n_final <- max(n_age, n_meanbp, n_hrt, n_sex, n_diabetes, n_hospdead)
+n_final
+```
+
+Se toma el mayor n para garantizar la precisión en todas las variables. El tamaño de la muestra a usar será 479. Cumple con la restricción de estar entre 300 y 500.
+
+**Tamaño de la muestra = 479.**
+
+## Parte 2:
+
+- De la población puedo hallar lo siguiente:
+
+```{r}
+# para cuantitativos:
+"media mu de age"
+mu_age <- mean(DF$age, na.rm=TRUE)  # la media MU de age
+mu_age
+"media mu de meanbp"
+mu_meanbp <- mean(DF$meanbp, na.rm=TRUE)  # la media MU de meanbp
+mu_meanbp
+"media mu de hrt"
+mu_hrt <- mean(DF$hrt, na.rm=TRUE)  # la media MU de hrt
+mu_hrt
+"desviación sigma de age"
+sigma_age <- sd(DF$age, na.rm=TRUE)  # desviación estándar sigma de age
+sigma_age
+"desviación sigma de meanbp"
+sigma_meanbp <- sd(DF$meanbp, na.rm=TRUE)  # desviación estándar sigma de meanbp
+sigma_meanbp
+"desviación sigma de hrt"
+sigma_hrt <- sd(DF$hrt, na.rm=TRUE)  # desviación estándar sigma de hrt
+sigma_hrt
+
+# para cualitativos:
+"para proporciones PI de sex"
+table(DF$sex, useNA="always")
+"para proporciones PI de diabetes"
+table(DF$diabetes, useNA="always")
+"para proporciones PI de hospdead"
+table(DF$hospdead, useNA="always")
+```
+
+### Caso 1: Media Muestral
+
+### Caso 2: Varianza Muestral
+
+### Caso 3: Proporción Muestral
+
+### Caso 4: Razón de Varianzas
+
+### Caso 5: Diferencia de Proporciones
+
+### Caso 6: Diferencia de Medias
