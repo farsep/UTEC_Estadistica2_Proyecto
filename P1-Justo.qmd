@@ -17,6 +17,7 @@ library(readr)
 | 3   | Elizabeth Huaman Santillan   |
 | 4   | Arnie Farid Espnioza Pachas  |
 | 5   | Leo Torres Ccencho           |
+| 6   | Marcelo Jaramillo Alfaro     |
 
 : **Área:** Salud
 
