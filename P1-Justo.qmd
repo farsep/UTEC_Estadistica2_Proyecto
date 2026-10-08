@@ -564,249 +564,113 @@ round(100 * P_caso3, 2)
 
 ### Caso 4: Razón de Varianzas
 
-#### 4.1. Planteamiento del problema
+#### 4.1. Planteamiento del caso
 
-En este caso se investiga si la **variabilidad de la frecuencia cardíaca (`hrt`)** es diferente entre los pacientes que fallecieron durante la hospitalización (`hospdead = 1`) y los que sobrevivieron (`hospdead = 0`). Se usa `hrt` porque es una variable cuantitativa continua; `hospdead` identifica dos grupos de pacientes mutuamente excluyentes.
+A partir de una **única muestra aleatoria de 479 pacientes**, seleccionada en la Parte 1, se comparará la variabilidad de la frecuencia cardíaca (`hrt`) entre quienes **fallecieron** durante su hospitalización (`hospdead = 1`) y quienes **sobrevivieron** (`hospdead = 0`).
 
-La pregunta estadística es: **¿existe evidencia de que la varianza de la frecuencia cardíaca sea distinta entre los pacientes fallecidos y los sobrevivientes?** La varianza mide dispersión, no el promedio de la frecuencia cardíaca. Una mayor varianza representa mayor heterogeneidad de los valores registrados en el grupo, pero no demuestra causalidad ni, por sí sola, mayor gravedad clínica.
+**Pregunta:** Suponiendo que ambas poblaciones tienen la misma varianza de frecuencia cardíaca y que se cumplen las condiciones para utilizar la distribución F, ¿cuál es la probabilidad de obtener una razón de varianzas muestrales **mayor que 1.25**?
 
-Este análisis utiliza una muestra aleatoria simple de **479 pacientes**, tamaño seleccionado en la Parte 1, obtenida de la población de 9,105 registros. La semilla garantiza reproducibilidad. Como hay un registro con `hrt` faltante en toda la base, se elimina **solo para este análisis** cualquier observación de la muestra que tenga `hrt` o `hospdead` ausente. Por ello, la cantidad válida puede ser 478 o 479.
+El umbral **1.25** es un valor de referencia escogido para construir el ejercicio de probabilidad; **no** es un valor clínico ni el resultado de la base.
 
-#### 4.2. Variables y parámetro de interés
+#### 4.2. Variables y distribución
 
-| Elemento               | Descripción                                     |
-|------------------------|-------------------------------------------------|
-| Variable cuantitativa  | `hrt`: frecuencia cardíaca (latidos por minuto) |
-| Variable de agrupación | `hospdead`: 1 = falleció; 0 = sobrevivió        |
-| Grupo 1                | Fallecidos durante la hospitalización           |
-| Grupo 2                | Sobrevivientes durante la hospitalización       |
-| Parámetro de interés   | $\theta = \sigma_1^2/\sigma_2^2$                |
-| Estadístico estimador  | $R = S_1^2/S_2^2$                               |
-| Nivel de confianza     | 96 %                                            |
-| Significancia          | $\alpha=0.04$                                   |
+- `hrt`: frecuencia cardíaca, variable cuantitativa.
+- `hospdead`: estado al finalizar la hospitalización, variable cualitativa con dos grupos.
+- $S_1^2$: varianza muestral de `hrt` de fallecidos.
+- $S_2^2$: varianza muestral de `hrt` de sobrevivientes.
 
-Aquí $\sigma_1^2$ y $\sigma_2^2$ son las varianzas de frecuencia cardíaca de las dos poblaciones (fallecidos y sobrevivientes, respectivamente). Las varianzas muestrales $S_1^2$ y $S_2^2$ se calculan usando el denominador $n_i-1$.
+Si los grupos son independientes, cada grupo proviene de una población aproximadamente normal y las varianzas poblacionales son iguales ($\sigma_1^2=\sigma_2^2$), entonces:
 
-Interpretación de la razón: si $R>1$, la varianza muestral de los fallecidos es mayor; si $R<1$, la de los sobrevivientes es mayor; si $R=1$, las varianzas muestrales coinciden. Para decidir si las varianzas **poblacionales** difieren se necesita un procedimiento inferencial.
+$$
+F=\frac{S_1^2}{S_2^2}\sim F(n_1-1,\,n_2-1).
+$$
 
-#### 4.3. Extracción reproducible de la muestra y depuración
+Los grados de libertad son $gl_1=n_1-1$ y $gl_2=n_2-1$. **Los tamaños de los grupos no se fijan en 479**: 479 es el tamaño total y cada grupo tiene su propia cantidad de pacientes.
 
-El archivo `support2.csv` debe encontrarse en la **misma carpeta** que este `.qmd`. No se reemplaza la base original y no se eliminan registros por valores faltantes en otras variables que no intervienen en este caso.
+#### 4.3. Obtención de la muestra y resumen
+
+El código siguiente selecciona una sola muestra de **479 pacientes sin reemplazo**. Se emplea una semilla para obtener siempre las mismas filas. La muestra se guarda como `muestra_479` y debe reutilizarse en los demás casos del proyecto; no se debe volver a tomar una muestra diferente para cada ejercicio.
 
 ```{r caso4-muestra}
-# Si DF ya se creó al comienzo del documento, se reutiliza.
-# Este bloque también funciona si el Caso 4 se ejecuta por separado.
-if (!exists("DF")) {
-  DF <- read.csv("support2.csv", stringsAsFactors = FALSE)
+# Ejecutar una sola vez y reutilizar muestra_479 en todos los casos.
+if (!exists("muestra_479")) {
+  set.seed(2026)
+  muestra_479 <- DF[sample(nrow(DF), 479, replace = FALSE), ]
 }
 
-stopifnot(all(c("hrt", "hospdead") %in% names(DF)))
-stopifnot(nrow(DF) >= 479)
+# Se usa la misma muestra original; solamente en este cálculo
+# se excluye algún registro que no tenga frecuencia cardíaca.
+datos_f <- muestra_479[!is.na(muestra_479$hrt) &
+                       !is.na(muestra_479$hospdead), ]
 
-set.seed(2026)
-indices <- sample(seq_len(nrow(DF)), size = 479, replace = FALSE)
-muestra_479 <- DF[indices, , drop = FALSE]
+fallecidos <- datos_f$hrt[datos_f$hospdead == 1]
+sobrevivientes <- datos_f$hrt[datos_f$hospdead == 0]
 
-# Casos completos únicamente para las variables del Caso 4
-muestra_c4 <- muestra_479[
-  !is.na(muestra_479$hrt) & !is.na(muestra_479$hospdead),
-  c("hrt", "hospdead"), drop = FALSE
-]
-muestra_c4$grupo <- factor(
-  muestra_c4$hospdead,
-  levels = c(1, 0),
-  labels = c("Fallecidos", "Sobrevivientes")
-)
-
-cat("Tamaño de la población:", nrow(DF), "\n")
-cat("Tamaño de muestra seleccionado:", nrow(muestra_479), "\n")
-cat("Registros válidos para el Caso 4:", nrow(muestra_c4), "\n")
-cat("Registros descartados por NA:",
-    nrow(muestra_479) - nrow(muestra_c4), "\n")
-print(table(muestra_c4$grupo))
-```
-
-**Interpretación:** el resultado de `table()` muestra cuántos pacientes válidos pertenecen a cada grupo. Los tamaños pueden ser distintos, lo cual no impide calcular la razón de varianzas.
-
-#### 4.4. Estadísticos descriptivos por grupo
-
-Primero se calculan las medias, las desviaciones estándar y las varianzas muestrales, separando a los pacientes de acuerdo con `hospdead`.
-
-```{r caso4-descriptivos}
-hrt_fallecidos <- muestra_c4$hrt[muestra_c4$hospdead == 1]
-hrt_sobrevivientes <- muestra_c4$hrt[muestra_c4$hospdead == 0]
-
-n1 <- length(hrt_fallecidos)
-n2 <- length(hrt_sobrevivientes)
-stopifnot(n1 >= 2, n2 >= 2)
-
-tabla_c4 <- data.frame(
-  Grupo = c("Fallecidos", "Sobrevivientes"),
-  n = c(n1, n2),
-  Media = c(mean(hrt_fallecidos), mean(hrt_sobrevivientes)),
-  Desviacion_estandar = c(sd(hrt_fallecidos), sd(hrt_sobrevivientes)),
-  Varianza = c(var(hrt_fallecidos), var(hrt_sobrevivientes))
-)
-print(transform(tabla_c4,
-  Media = round(Media, 3),
-  Desviacion_estandar = round(Desviacion_estandar, 3),
-  Varianza = round(Varianza, 3)
-), row.names = FALSE)
-
-s1_2 <- var(hrt_fallecidos)
-s2_2 <- var(hrt_sobrevivientes)
-razon_var <- s1_2 / s2_2
-cat("Razón de varianzas (fallecidos/sobrevivientes):",
-    round(razon_var, 4), "\n")
-```
-
-**Cómo se interpreta:** la estimación $R=S_1^2/S_2^2$ compara la dispersión de la frecuencia cardíaca de los fallecidos (numerador) respecto de la de los sobrevivientes (denominador). Por ejemplo, un valor de 1.30 significaría que la varianza del primer grupo es un 30 % mayor; es un ejemplo ilustrativo y **no** el resultado calculado de la muestra.
-
-#### 4.5. Distribución muestral de la razón de varianzas
-
-Bajo los supuestos de independencia de las observaciones y **normalidad de la frecuencia cardíaca dentro de cada grupo**, el estadístico estandarizado tiene distribución F:
-
-$$F=\frac{(S_1^2/\sigma_1^2)}{(S_2^2/\sigma_2^2)}
-\sim F_{n_1-1,\,n_2-1}.$$
-
-En particular, **si las varianzas poblacionales son iguales**, $\sigma_1^2=\sigma_2^2$, el estadístico para el contraste de igualdad se simplifica a:
-
-$$F_{\mathrm{obs}}=\frac{S_1^2}{S_2^2},
-\qquad gl_1=n_1-1,\;gl_2=n_2-1.$$
-
-Los grados de libertad dependen de los tamaños efectivamente observados en ambos grupos y se obtienen con el código siguiente.
-
-```{r caso4-f-observado}
+n1 <- length(fallecidos)
+n2 <- length(sobrevivientes)
 gl1 <- n1 - 1
 gl2 <- n2 - 1
-cat("Estadístico F observado:", round(razon_var, 4), "\n")
-cat("Grados de libertad: gl1 =", gl1, "; gl2 =", gl2, "\n")
-```
 
-#### 4.6. Intervalo de confianza del 96 % para la razón de varianzas
-
-Se considera $1-\alpha=0.96$, por lo tanto $\alpha=0.04$ y $\alpha/2=0.02$. El intervalo de confianza bilateral, bajo el modelo normal, es:
-
-$$IC_{96\%}\left(\frac{\sigma_1^2}{\sigma_2^2}\right)
-=\left[
-\frac{S_1^2/S_2^2}{F_{1-\alpha/2;\,gl_1,gl_2}},\;
-\frac{S_1^2/S_2^2}{F_{\alpha/2;\,gl_1,gl_2}}
-\right].$$
-
-Aquí $F_{p;gl_1,gl_2}$ representa el cuantil de probabilidad acumulada $p$ de la distribución F.
-
-```{r caso4-intervalo}
-confianza <- 0.96
-alfa <- 1 - confianza
-f_izq <- qf(alfa / 2, df1 = gl1, df2 = gl2)
-f_der <- qf(1 - alfa / 2, df1 = gl1, df2 = gl2)
-
-ic_inferior <- razon_var / f_der
-ic_superior <- razon_var / f_izq
-
-cat("Nivel de confianza:", confianza * 100, "%\n")
-cat("Cuantil F inferior:", round(f_izq, 5), "\n")
-cat("Cuantil F superior:", round(f_der, 5), "\n")
-cat("IC 96% de sigma1^2/sigma2^2: [",
-    round(ic_inferior, 4), ", ", round(ic_superior, 4), "]\n", sep = "")
-```
-
-**Interpretación:** el intervalo proporciona un rango de valores compatibles con la razón de varianzas poblacionales, con 96 % de confianza bajo los supuestos establecidos. Si el intervalo incluye 1, los resultados son compatibles con igualdad de varianzas; si no contiene 1, muestran evidencia de una diferencia al nivel de significancia del 4 %.
-
-#### 4.7. Contraste de hipótesis mediante la prueba F
-
-Se desea contrastar:
-
-$$H_0:\sigma_1^2=\sigma_2^2
-\qquad\text{frente a}\qquad
-H_1:\sigma_1^2\ne\sigma_2^2.$$
-
-Es una **prueba bilateral**, con $\alpha=0.04$. Se rechaza $H_0$ si el valor p es menor que 0.04. De forma equivalente, bajo los supuestos de la prueba, se rechaza si la razón observada cae fuera del intervalo comprendido entre los cuantiles F del 2 % y del 98 %.
-
-```{r caso4-contraste}
-prueba_f <- var.test(
-  hrt_fallecidos,
-  hrt_sobrevivientes,
-  ratio = 1,
-  alternative = "two.sided",
-  conf.level = confianza
+resumen_f <- data.frame(
+  Grupo = c("Fallecidos", "Sobrevivientes"),
+  n = c(n1, n2),
+  Varianza = round(c(var(fallecidos), var(sobrevivientes)), 3),
+  Grados_de_libertad = c(gl1, gl2)
 )
-
-print(prueba_f)
-
-if (prueba_f$p.value < alfa) {
-  cat("Decisión: se RECHAZA H0 al 4% de significancia.\n")
-  cat("Conclusión: hay evidencia estadística de varianzas diferentes.\n")
-}
-if (prueba_f$p.value >= alfa) {
-  cat("Decisión: NO se rechaza H0 al 4% de significancia.\n")
-  cat("Conclusión: no hay evidencia suficiente de varianzas diferentes.\n")
-}
-cat("Valor p:", signif(prueba_f$p.value, 5), "\n")
+print(resumen_f, row.names = FALSE)
+cat("Total inicialmente seleccionado:", nrow(muestra_479), "\n")
+cat("Total con información válida para este caso:", nrow(datos_f), "\n")
 ```
 
-**Precisión conceptual:** no rechazar $H_0$ **no significa demostrar** que las varianzas sean iguales; significa que, con esta muestra y esta prueba, no se obtuvo evidencia suficiente de una diferencia.
+**Lectura de resultados:** la tabla muestra el número de pacientes de cada grupo, su varianza muestral y sus grados de libertad. Si hubiese un valor faltante de `hrt` en los 479 seleccionados, se utilizarán 478 datos válidos **solo en este caso**, sin reemplazar pacientes ni volver a calcular el tamaño de muestra.
 
-#### 4.8. Evaluación gráfica de los supuestos
+#### 4.4. Cálculo de la probabilidad
 
-La prueba F supone normalidad dentro de cada grupo y observaciones independientes. El muestreo de pacientes distintos ayuda a justificar independencia entre registros, pero esta no se garantiza únicamente con un gráfico. Para examinar posibles asimetrías y valores extremos se emplean diagramas de caja y gráficos Q-Q.
+Bajo las condiciones indicadas, se solicita calcular:
 
-```{r caso4-graficos, fig.width=9, fig.height=5}
-par(mfrow = c(1, 2))
-boxplot(hrt ~ grupo, data = muestra_c4,
-        main = "Frecuencia cardíaca por desenlace",
-        xlab = "Desenlace hospitalario",
-        ylab = "Latidos por minuto",
-        col = c("#C45B65", "#72A5C1"))
-qqnorm(hrt_fallecidos, main = "Q-Q: fallecidos", pch = 19, cex = 0.55)
-qqline(hrt_fallecidos, col = "red", lwd = 2)
-par(mfrow = c(1, 1))
+$$
+P(F_{gl_1,gl_2}>1.25).
+$$
+
+En R, `pf(x, df1, df2)` devuelve la probabilidad acumulada **a la izquierda** de $x$. Por tanto, para el área **a la derecha**, utilizamos `pf(..., lower.tail = FALSE)`.
+
+```{r caso4-probabilidad}
+limite <- 1.25
+probabilidad <- pf(limite, df1 = gl1, df2 = gl2,
+                   lower.tail = FALSE)
+cat("P(F > 1.25) =", round(probabilidad, 6), "\n")
+cat("En porcentaje =", round(probabilidad * 100, 2), "%\n")
 ```
 
-```{r caso4-qq-supervivientes, fig.width=6, fig.height=4}
-qqnorm(hrt_sobrevivientes, main = "Q-Q: sobrevivientes", pch = 19, cex = 0.55)
-qqline(hrt_sobrevivientes, col = "red", lwd = 2)
+La probabilidad pedida es **`r sprintf('%.4f', probabilidad)`**, equivalente aproximadamente a **`r sprintf('%.2f', probabilidad*100)` %**.
+
+**Interpretación:** si las varianzas poblacionales fueran iguales y se cumplieran los supuestos de la distribución F, la probabilidad de que la varianza muestral de la frecuencia cardíaca de los fallecidos supere **1.25 veces** la de los sobrevivientes sería de **`r sprintf('%.2f', probabilidad*100)` %**. Esta es una probabilidad **teórica**, no la proporción de pacientes que fallecen.
+
+#### 4.5. Comparación con la razón observada
+
+Como complemento descriptivo, calculamos la razón de las varianzas de la muestra obtenida:
+
+```{r caso4-razon-observada}
+razon_observada <- var(fallecidos) / var(sobrevivientes)
+cat("Razón de varianzas muestrales observada =",
+    round(razon_observada, 4), "\n")
 ```
 
-**Cómo revisarlos:** puntos muy alejados de la recta en los gráficos Q-Q, colas pronunciadas o múltiples valores extremos pueden indicar que la normalidad es poco plausible. En ese caso, la prueba F y su intervalo clásico podrían no ser fiables. No debe afirmarse que se cumple normalidad solamente porque el tamaño de muestra sea grande.
+En nuestra muestra, la razón observada es **`r sprintf('%.4f', razon_observada)`**. Esto describe la dispersión relativa de los dos grupos. **No debe confundirse** con la probabilidad teórica calculada en el apartado anterior.
 
-Como comprobación adicional, se incluye una prueba de Levene centrada en las **medianas**, más robusta frente a falta de normalidad. Esta prueba es complementaria: **no reemplaza** la fórmula del intervalo F de la razón de varianzas y sus resultados no necesariamente coinciden con los de la prueba F.
+#### 4.6. Representación gráfica opcional
 
-```{r caso4-levene}
-# Levene (variante de Brown-Forsythe): desviaciones absolutas
-# respecto de la mediana de cada grupo.
-medianas <- tapply(muestra_c4$hrt, muestra_c4$grupo, median)
-muestra_c4$desv_abs <- abs(
-  muestra_c4$hrt - medianas[as.character(muestra_c4$grupo)]
-)
-prueba_levene <- oneway.test(
-  desv_abs ~ grupo, data = muestra_c4, var.equal = TRUE
-)
-print(prueba_levene)
-if (prueba_levene$p.value < alfa) {
-  cat("Levene: evidencia de distinta dispersión (p < 0.04).\n")
-}
-if (prueba_levene$p.value >= alfa) {
-  cat("Levene: no hay evidencia suficiente de distinta dispersión (p >= 0.04).\n")
-}
+```{r caso4-grafico, fig.width=7, fig.height=4, echo=TRUE}
+curve(df(x, df1=gl1, df2=gl2), from=0, to=3,
+      n=400, lwd=2, col="navy",
+      xlab="Valor de F", ylab="Densidad",
+      main="Distribución F: área a la derecha de 1.25")
+abline(v=limite, lty=2, col="firebrick", lwd=2)
+legend("topright", legend=c("Distribución F", "F = 1.25"),
+       col=c("navy", "firebrick"), lty=c(1, 2), bty="n")
 ```
 
-#### 4.9. Interpretación automática de los resultados
-
-Las siguientes frases se completan automáticamente cuando se ejecute el archivo en RStudio/Quarto con `support2.csv` en la misma carpeta:
-
-- Se estudiaron **`r n1` fallecidos** y **`r n2` sobrevivientes** con valores válidos de `hrt`.
-- La varianza muestral de la frecuencia cardíaca fue de **`r round(s1_2, 3)`** para fallecidos y de **`r round(s2_2, 3)`** para sobrevivientes (unidades: latidos²/minuto²).
-- La razón estimada de varianzas fue **`r round(razon_var, 4)`**.
-- El intervalo de confianza del 96 % fue **\[`r round(ic_inferior, 4)`, `r round(ic_superior, 4)`\]**.
-- El valor p de la prueba F bilateral fue **`r signif(prueba_f$p.value, 4)`**.
-- Al nivel de significancia de 4 %, **`r if (prueba_f$p.value < alfa) "se rechaza la hipótesis de igualdad de varianzas" else "no se rechaza la hipótesis de igualdad de varianzas"`**, siempre que los supuestos del contraste sean razonables.
-
-#### 4.10. Conclusión del Caso 4
-
-Se comparó la variabilidad de la frecuencia cardíaca entre pacientes fallecidos y sobrevivientes utilizando una muestra aleatoria de 479 registros del estudio SUPPORT2 (menos los posibles faltantes en las variables analizadas). La **razón de varianzas muestrales** permitió cuantificar la diferencia relativa de dispersión, y se construyó un **intervalo de confianza del 96 %** junto con un **contraste F bilateral** al 4 % de significancia. Asimismo, se revisó visualmente la normalidad y se incorporó una prueba robusta complementaria basada en las desviaciones respecto de la mediana.
-
-El resultado estadístico debe interpretarse a partir de los valores generados al ejecutar el código. Si los supuestos de normalidad no son razonables, se dará mayor cautela a la inferencia F y se informará también el resultado de Levene. **Este análisis estudia diferencias de dispersión, no establece relaciones causales ni evalúa por sí mismo diferencias en promedios.**
+**Conclusión del caso 4.** Para los tamaños de los dos grupos identificados dentro de los 479 pacientes seleccionados, se aplicó la distribución F de Fisher y se calculó la probabilidad de superar una razón de varianzas de 1.25. El ejercicio ilustra el uso de la función `pf()` y los grados de libertad, sin realizar intervalos de confianza ni pruebas de hipótesis. **La validez exacta del modelo F depende de normalidad e independencia**, condiciones que se asumen para este ejercicio y que no quedan demostradas únicamente con la base de datos.
 
 ### Caso 5: Diferencia de Proporciones
 
