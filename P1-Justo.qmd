@@ -266,7 +266,7 @@ Sin embargo, estas diferencias son descriptivas y no permiten afirmar que una en
 
 1.  Las variables que usaremos para encontrar su tamaño de muestra son: "age", "meanbp", "hrt", "sex", "diabetes" y "hospdead"
 
-### Variables Cualitativas
+### Variables Cuantitativas
 
 ```{r}
 #media y desviacion de "age"
@@ -395,7 +395,7 @@ n_hospdead = 422
 ### Tabla de tamaños de muestra finales
 
 | Variable | Tipo | Desviación o proporción | Tolerancia | n (hallado con el código) |
-|---------------|---------------|----------------------------|---------------|-----------------------------------|
+|----|----|----|----|----|
 | age | Cuantitativa | 15.5937 | 1.5 | 456 |
 | meanbp | Cuantitativa | 27.6877 | 2.6 | 479 |
 | hrt | Cuantitativa | 31.5593 | 3 | 467 |
@@ -574,16 +574,16 @@ Este análisis utiliza una muestra aleatoria simple de **479 pacientes**, tamañ
 
 #### 4.2. Variables y parámetro de interés
 
-| Elemento | Descripción |
-|---|---|
-| Variable cuantitativa | `hrt`: frecuencia cardíaca (latidos por minuto) |
-| Variable de agrupación | `hospdead`: 1 = falleció; 0 = sobrevivió |
-| Grupo 1 | Fallecidos durante la hospitalización |
-| Grupo 2 | Sobrevivientes durante la hospitalización |
-| Parámetro de interés | $\theta = \sigma_1^2/\sigma_2^2$ |
-| Estadístico estimador | $R = S_1^2/S_2^2$ |
-| Nivel de confianza | 96 % |
-| Significancia | $\alpha=0.04$ |
+| Elemento               | Descripción                                     |
+|------------------------|-------------------------------------------------|
+| Variable cuantitativa  | `hrt`: frecuencia cardíaca (latidos por minuto) |
+| Variable de agrupación | `hospdead`: 1 = falleció; 0 = sobrevivió        |
+| Grupo 1                | Fallecidos durante la hospitalización           |
+| Grupo 2                | Sobrevivientes durante la hospitalización       |
+| Parámetro de interés   | $\theta = \sigma_1^2/\sigma_2^2$                |
+| Estadístico estimador  | $R = S_1^2/S_2^2$                               |
+| Nivel de confianza     | 96 %                                            |
+| Significancia          | $\alpha=0.04$                                   |
 
 Aquí $\sigma_1^2$ y $\sigma_2^2$ son las varianzas de frecuencia cardíaca de las dos poblaciones (fallecidos y sobrevivientes, respectivamente). Las varianzas muestrales $S_1^2$ y $S_2^2$ se calculan usando el denominador $n_i-1$.
 
@@ -666,17 +666,13 @@ cat("Razón de varianzas (fallecidos/sobrevivientes):",
 
 Bajo los supuestos de independencia de las observaciones y **normalidad de la frecuencia cardíaca dentro de cada grupo**, el estadístico estandarizado tiene distribución F:
 
-$$
-F=\frac{(S_1^2/\sigma_1^2)}{(S_2^2/\sigma_2^2)}
-\sim F_{n_1-1,\,n_2-1}.
-$$
+$$F=\frac{(S_1^2/\sigma_1^2)}{(S_2^2/\sigma_2^2)}
+\sim F_{n_1-1,\,n_2-1}.$$
 
 En particular, **si las varianzas poblacionales son iguales**, $\sigma_1^2=\sigma_2^2$, el estadístico para el contraste de igualdad se simplifica a:
 
-$$
-F_{\mathrm{obs}}=\frac{S_1^2}{S_2^2},
-\qquad gl_1=n_1-1,\;gl_2=n_2-1.
-$$
+$$F_{\mathrm{obs}}=\frac{S_1^2}{S_2^2},
+\qquad gl_1=n_1-1,\;gl_2=n_2-1.$$
 
 Los grados de libertad dependen de los tamaños efectivamente observados en ambos grupos y se obtienen con el código siguiente.
 
@@ -691,13 +687,11 @@ cat("Grados de libertad: gl1 =", gl1, "; gl2 =", gl2, "\n")
 
 Se considera $1-\alpha=0.96$, por lo tanto $\alpha=0.04$ y $\alpha/2=0.02$. El intervalo de confianza bilateral, bajo el modelo normal, es:
 
-$$
-IC_{96\%}\left(\frac{\sigma_1^2}{\sigma_2^2}\right)
+$$IC_{96\%}\left(\frac{\sigma_1^2}{\sigma_2^2}\right)
 =\left[
 \frac{S_1^2/S_2^2}{F_{1-\alpha/2;\,gl_1,gl_2}},\;
 \frac{S_1^2/S_2^2}{F_{\alpha/2;\,gl_1,gl_2}}
-\right].
-$$
+\right].$$
 
 Aquí $F_{p;gl_1,gl_2}$ representa el cuantil de probabilidad acumulada $p$ de la distribución F.
 
@@ -723,11 +717,9 @@ cat("IC 96% de sigma1^2/sigma2^2: [",
 
 Se desea contrastar:
 
-$$
-H_0:\sigma_1^2=\sigma_2^2
+$$H_0:\sigma_1^2=\sigma_2^2
 \qquad\text{frente a}\qquad
-H_1:\sigma_1^2\ne\sigma_2^2.
-$$
+H_1:\sigma_1^2\ne\sigma_2^2.$$
 
 Es una **prueba bilateral**, con $\alpha=0.04$. Se rechaza $H_0$ si el valor p es menor que 0.04. De forma equivalente, bajo los supuestos de la prueba, se rechaza si la razón observada cae fuera del intervalo comprendido entre los cuantiles F del 2 % y del 98 %.
 
@@ -806,7 +798,7 @@ Las siguientes frases se completan automáticamente cuando se ejecute el archivo
 - Se estudiaron **`r n1` fallecidos** y **`r n2` sobrevivientes** con valores válidos de `hrt`.
 - La varianza muestral de la frecuencia cardíaca fue de **`r round(s1_2, 3)`** para fallecidos y de **`r round(s2_2, 3)`** para sobrevivientes (unidades: latidos²/minuto²).
 - La razón estimada de varianzas fue **`r round(razon_var, 4)`**.
-- El intervalo de confianza del 96 % fue **[`r round(ic_inferior, 4)`, `r round(ic_superior, 4)`]**.
+- El intervalo de confianza del 96 % fue **\[`r round(ic_inferior, 4)`, `r round(ic_superior, 4)`\]**.
 - El valor p de la prueba F bilateral fue **`r signif(prueba_f$p.value, 4)`**.
 - Al nivel de significancia de 4 %, **`r if (prueba_f$p.value < alfa) "se rechaza la hipótesis de igualdad de varianzas" else "no se rechaza la hipótesis de igualdad de varianzas"`**, siempre que los supuestos del contraste sean razonables.
 
@@ -816,7 +808,83 @@ Se comparó la variabilidad de la frecuencia cardíaca entre pacientes fallecido
 
 El resultado estadístico debe interpretarse a partir de los valores generados al ejecutar el código. Si los supuestos de normalidad no son razonables, se dará mayor cautela a la inferencia F y se informará también el resultado de Levene. **Este análisis estudia diferencias de dispersión, no establece relaciones causales ni evalúa por sí mismo diferencias en promedios.**
 
-
 ### Caso 5: Diferencia de Proporciones
+
+**Escenario:** Se desea comparar la proporción de fallecimientos durante la hospitalización entre mujeres y hombres. Para ello, se consideran dos muestras aleatorias e independientes: 479 mujeres y 479 hombres. ¿Cuál es la probabilidad de que la proporción de fallecimientos en la muestra de mujeres supere a la proporción correspondiente en la muestra de hombres en al menos 5 puntos porcentuales?
+
+En este caso, el evento de interés es `hospdead = 1`. Las proporciones poblacionales se calculan por separado para cada grupo.
+
+```{r}
+# Cantidades poblacionales por sexo
+total_mujeres <- sum(DF$sex == "female" & !is.na(DF$hospdead))
+total_hombres <- sum(DF$sex == "male" & !is.na(DF$hospdead))
+
+fallecimientos_mujeres <- sum(DF$sex == "female" & DF$hospdead == 1,
+                              na.rm = TRUE)
+fallecimientos_hombres <- sum(DF$sex == "male" & DF$hospdead == 1,
+                              na.rm = TRUE)
+
+# Proporciones poblacionales
+pi_mujeres <- fallecimientos_mujeres / total_mujeres
+pi_hombres <- fallecimientos_hombres / total_hombres
+
+data.frame(
+  Grupo = c("Mujeres", "Hombres"),
+  Total = c(total_mujeres, total_hombres),
+  Fallecimientos = c(fallecimientos_mujeres, fallecimientos_hombres),
+  Proporcion = c(pi_mujeres, pi_hombres)
+)
+```
+
+Se obtiene que la proporción poblacional de fallecimientos es `r round(pi_mujeres, 4)` para las mujeres y `r round(pi_hombres, 4)` para los hombres.
+
+Sean $p_1$ y $p_2$ las proporciones de fallecimientos en las muestras de mujeres y hombres, respectivamente. La distribución de su diferencia se aproxima mediante:
+
+$$p_1-p_2 \sim N\left(
+\pi_1-\pi_2,\
+\sqrt{\frac{\pi_1(1-\pi_1)}{n_1}+
+\frac{\pi_2(1-\pi_2)}{n_2}}
+\right)$$
+
+Se utiliza el tamaño de muestra establecido en la primera parte para ambos grupos:
+
+$$n_1=n_2=479$$
+
+```{r}
+n_mujeres <- n_final
+n_hombres <- n_final
+
+media_diferencia <- pi_mujeres - pi_hombres
+desviacion_diferencia <- sqrt(
+  pi_mujeres * (1 - pi_mujeres) / n_mujeres +
+  pi_hombres * (1 - pi_hombres) / n_hombres
+)
+
+data.frame(
+  Media = media_diferencia,
+  Desviacion_estandar = desviacion_diferencia
+)
+```
+
+La probabilidad solicitada es:
+
+$$P(p_1-p_2 \geq 0.05)$$
+
+```{r}
+diferencia_minima <- 0.05
+
+probabilidad_caso5 <- pnorm(
+  diferencia_minima,
+  mean = media_diferencia,
+  sd = desviacion_diferencia,
+  lower.tail = FALSE
+)
+
+probabilidad_caso5
+```
+
+La probabilidad de que la proporción muestral de fallecimientos en mujeres supere a la de los hombres en al menos 5 puntos porcentuales es `r round(probabilidad_caso5, 4)`, equivalente aproximadamente a `r round(100 * probabilidad_caso5, 2)`%. Por lo tanto, este resultado sería poco frecuente bajo las proporciones observadas en la población.
+
+Para aplicar la aproximación normal se asume que las dos muestras son aleatorias e independientes. Además, las cantidades esperadas de fallecimientos y no fallecimientos en ambos grupos son mayores que 5, por lo que la aproximación resulta adecuada.
 
 ### Caso 6: Diferencia de Medias
