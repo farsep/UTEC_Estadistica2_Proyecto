@@ -171,6 +171,96 @@ round(prop.table(table(DF$sex)) * 100, 2)
 
 **Interpretación:** La base contiene 5,125 pacientes registrados como hombres y 3,980 como mujeres. Por tanto, existe una mayor representación de hombres en la población analizada.
 
+### Distribución porcentual de pacientes por grupo de enfermedad y sexo
+
+Se analiza la distribución porcentual de hombres y mujeres dentro de cada grupo de enfermedad, con el propósito de describir la composición clínica y demográfica de los pacientes registrados en SUPPORT2.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# Tabla de frecuencias absolutas
+tabla_sexo_enfermedad <- table(DF$dzgroup, DF$sex)
+tabla_sexo_enfermedad
+
+# Porcentaje por grupo de enfermedad
+round(prop.table(tabla_sexo_enfermedad, margin = 1) * 100, 2)
+```
+
+```{r}
+#Gráfico de barras porcentuales al 100%
+DF %>%
+  filter(!is.na(dzgroup), !is.na(sex)) %>%
+  ggplot(aes(x = dzgroup, fill = sex)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Distribución porcentual por enfermedad y sexo",
+    subtitle = "Pacientes registrados en SUPPORT2",
+    x = "Grupo de enfermedad",
+    y = "Porcentaje de pacientes",
+    fill = "Sexo"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1)
+  )
+```
+
+**Interpretación:** El gráfico permite comparar la proporción de hombres y mujeres dentro de cada grupo de enfermedad, independientemente del número total de pacientes por diagnóstico. De esta manera, se pueden identificar diferencias descriptivas en la composición por sexo entre los grupos de enfermedades estudiados.
+
+### Distribución porcentual de mortalidad hospitalaria por grupo de enfermedad
+
+Se analiza la distribución porcentual de pacientes fallecidos y no fallecidos durante la hospitalización según su grupo de enfermedad, con el propósito de describir las diferencias en los resultados hospitalarios entre los distintos grupos diagnósticos.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# Tabla de frecuencias absolutas
+tabla_mortalidad_enfermedad <- table(DF$dzgroup, DF$hospdead)
+tabla_mortalidad_enfermedad
+
+# Porcentaje dentro de cada grupo de enfermedad
+round(prop.table(tabla_mortalidad_enfermedad, margin = 1) * 100, 2)
+```
+
+```{r}
+DF_mortalidad <- DF %>%
+  filter(!is.na(dzgroup), !is.na(hospdead)) %>%
+  mutate(
+    estado = factor(
+      hospdead,
+      levels = c(0, 1),
+      labels = c("No fallecido", "Fallecido")
+    )
+  )
+
+ggplot(
+  DF_mortalidad,
+  aes(x = dzgroup, fill = estado)
+) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Mortalidad hospitalaria por grupo de enfermedad",
+    subtitle = "Pacientes registrados en SUPPORT2",
+    x = "Grupo de enfermedad",
+    y = "Porcentaje de pacientes",
+    fill = "Estado hospitalario"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1)
+  )
+```
+
+**Interpretación:** El gráfico permite comparar la proporción de pacientes fallecidos y no fallecidos durante la hospitalización dentro de cada grupo de enfermedad. Esto facilita identificar qué grupos diagnósticos presentan una mayor proporción observada de mortalidad hospitalaria.
+
+Sin embargo, estas diferencias son descriptivas y no permiten afirmar que una enfermedad sea la causa directa de una mayor mortalidad, ya que podrían intervenir otros factores clínicos, como la edad, el estado de salud y las comorbilidades.
+
 ## Parte 1: Hallar tamaño de la muestra
 
 1.  Las variables que usaremos para encontrar su tamaño de muestra son: "age", "meanbp", "hrt", "sex", "diabetes" y "hospdead"
