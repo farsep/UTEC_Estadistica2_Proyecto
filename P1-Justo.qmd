@@ -8,10 +8,168 @@ editor: visual
 library(readr)
 ```
 
+# Integrantes
+
+| N°  | Nombre                       |
+|-----|------------------------------|
+| 1   | Valentin Tuesta Barrantes    |
+| 2   | Joaquín Emilio Justo Guillen |
+| 3   | Elizabeth Huaman Santillan   |
+| 4   | Arnie Farid Espnioza Pachas  |
+| 5   | Leo Torres Ccencho           |
+
+: **Área:** Salud
+
+**Título:** Análisis estadístico de factores clínicos y demográficos asociados a la supervivencia y estado de pacientes críticamente enfermos.
+
+# Descripción del Tema
+
+### Relevancia
+
+La toma de decisiones al final de la vida en pacientes hospitalizados con enfermedades graves (falla respiratoria aguda, EPOC, insuficiencia cardíaca, cirrosis, cáncer, coma, entre otras) es un problema de creciente preocupación en los sistemas de salud, tanto por el impacto humano (calidad de vida, sufrimiento innecesario) como por el impacto económico (uso de recursos en UCI, costos hospitalarios). Entender qué variables clínicas, fisiológicas y sociodemográficas se asocian con la mortalidad permite mejorar el pronóstico médico, apoyar decisiones informadas de tratamiento y optimizar la asignación de recursos hospitalarios.
+
+Un estudio realizado en la Unidad de Cuidados Intermedios de un hospital público de Lima encontró que la edad mayor a 60 años y una saturación de oxígeno menor a 80% al ingreso se asociaron significativamente con una mayor mortalidad hospitalaria en pacientes críticos, utilizando exactamente el tipo de pruebas estadísticas que se plantean en este proyecto (chi-cuadrado, t de Student y regresión logística múltiple).
+
+De acuerdo con los objetivos del curso, este proyecto permitirá desarrollar competencias en el manejo, análisis e interpretación de datos, aplicando los conceptos teóricos revisados en clase al estudio de una problemática de salud pública de relevancia, como es el pronóstico de pacientes en estado crítico.
+
+### Proveniencia de Datos
+
+Para el presente proyecto se decidió trabajar con una base de datos pública, SUPPORT2 (Study to Understand Prognoses and Preferences for Outcomes and Risks of Treatments), disponible en el repositorio UCI Machine Learning Repository. Los datos fueron obtenidos de registros médicos, entrevistas personales y el National Death Index, correspondiente a pacientes críticamente enfermos hospitalizados en 5 centros médicos de Estados Unidos entre 1989 - 1994.
+
+El uso de esta base resulta pertinente, ya que abarca información fisiológica, demográfica y de severidad de enfermedad de más de 9000 pacientes, lo que permite observar de manera clara la relación entre las condiciones clínicas al ingreso y el pronóstico de supervivencia. La base se encuentra en formato digital (CSV), lo que facilita su acceso, análisis y posterior procesamiento.
+
+### Herramientas y tecnología
+
+En el mundo real, este tipo de problema de salud se apoya cada vez más en tecnologías modernas de análisis de datos e inteligencia artificial (IA), no solo en escalas clínicas tradicionales.
+
+- Modelos de Machine Learning aplicados a datos públicos de salud en Latinoamérica : un estudio reciente (2026) de investigadores brasileños, en colaboración con la Universidad de Alicante, utilizó el dataset público del sistema de salud pública de Brasil —con más de 365,000 pacientes de UCI— para predecir mortalidad hospitalaria y tiempo de estancia en UCI. Compararon seis algoritmos de aprendizaje supervisado,XGBosst obtuvo el mejor desempeño . El estudio también aplicó la técnica SHAP para identificar qué variables clínicas influyen más en el riesgo de mortalidad, destacando el valor de los datos públicos masivos combinados con IA para apoyar la gestión hospitalaria y el triaje en crisis sanitarias.
+
+### Objetivos
+
+**Objetivo general:** Analizar la relación entre factores clínicos y sociodemográficos y la supervivencia de pacientes críticamente enfermos mediante técnicas de estadística descriptiva e inferencial.
+
+**Objetivos específicos:**
+
+1.  Describir el comportamiento de las principales variables de los pacientes mediante distribuciones de probabilidad.
+2.  Evaluar la asociación entre diversos factores clínicos y la supervivencia de los pacientes y cual o cuales de estos presentan un valor estadísticamente significativo para determinar las condiciones de supervivencia y no supervivencia.
+3.  Estimar la probabilidad de supervivencia y mortalidad hospitalaria de los pacientes críticamente enfermos.
+
+# Carga y Exploración de la Base de Datos
+
 ```{r}
 DF <- read.csv("support2.csv")
-DF
+head(DF)
 ```
+
+La base de datos contiene **`r nrow(DF)` registros** y **`r ncol(DF)` variables**.
+
+## Variables del Dataset
+
+```{r}
+names(DF)
+```
+
+```{r}
+variables <- data.frame(
+  Variable = c(
+    "num.co", "scoma",
+    "age", "meanbp", "hrt",
+    "sex", "dzgroup", "diabetes",
+    "income", "adlp",
+    "hospdead"
+  ),
+  Tipo = c(
+    "Cuantitativa discreta", "Cuantitativa discreta",
+    "Cuantitativa continua", "Cuantitativa continua", "Cuantitativa continua",
+    "Cualitativa nominal", "Cualitativa nominal", "Cualitativa nominal",
+    "Cualitativa ordinal", "Cualitativa ordinal",
+    "Cualitativa nominal"
+  ),
+  Descripcion = c(
+    "Número de comorbilidades",
+    "Puntaje de coma",
+    "Edad del paciente",
+    "Presión arterial media",
+    "Frecuencia cardíaca",
+    "Sexo del paciente",
+    "Grupo de enfermedad",
+    "Presencia de diabetes",
+    "Nivel de ingresos",
+    "Nivel de dependencia en actividades diarias",
+    "Muerte durante la hospitalización"
+  )
+)
+
+variables
+```
+
+## Verificación de Datos Faltantes
+
+```{r}
+print(paste("Total de celdas vacías (NA):", sum(is.na(DF))))
+```
+
+```{r}
+print(paste("Total de celdas vacías (NA):", sum(is.na(DF))))
+
+print("NA por columna:")
+apply(is.na(DF), 2, sum)
+```
+
+## Análisis Descriptivo Básico
+
+```{r}
+summary(DF[, c("age", "meanbp", "hrt")])
+```
+
+**Interpretación:** Los pacientes presentan una edad promedio de entre 62-63 años, una presión arterial media promedio de 84.55 mmHg y una frecuencia cardíaca promedio de 97.16 latidos por minuto. Se observan valores mínimos de cero en la presión arterial media y la frecuencia cardíaca, los cuales requieren revisión para determinar si corresponden a mediciones válidas o posibles problemas de calidad de datos.
+
+### Distribución de mortalidad hospitalaria
+
+Se analiza la frecuencia de pacientes fallecidos y no fallecidos durante su hospitalización, utilizando la variable cualitativa `hospdead`.
+
+```{r}
+# Frecuencia absoluta
+table(DF$hospdead)
+
+# Frecuencia relativa porcentual
+round(prop.table(table(DF$hospdead)) * 100, 2)
+```
+
+### Gráfico de mortalidad hospitalaria
+
+```{r}
+mortalidad <- table(
+  factor(
+    DF$hospdead,
+    levels = c(0, 1),
+    labels = c("No fallecidos", "Fallecidos")
+  )
+)
+
+barplot(
+  mortalidad,
+  main = "Mortalidad hospitalaria en SUPPORT2",
+  xlab = "Estado del paciente",
+  ylab = "Número de pacientes",
+  col = c("steelblue", "salmon"),
+  ylim = c(0, max(mortalidad) * 1.15)
+)
+```
+
+**Interpretación:** Del total de 9,105 pacientes registrados, el 74.08% no falleció durante la hospitalización y el 25.92% sí falleció. Este resultado permite conocer la distribución general de mortalidad en la población de estudio y sirve como referencia para los análisis posteriores de proporciones muestrales.
+
+### Distribución de pacientes por sexo
+
+Se describe la composición de la población estudiada según el sexo registrado.
+
+```{r}
+table(DF$sex)
+
+round(prop.table(table(DF$sex)) * 100, 2)
+```
+
+**Interpretación:** La base contiene 5,125 pacientes registrados como hombres y 3,980 como mujeres. Por tanto, existe una mayor representación de hombres en la población analizada.
 
 ## Parte 1: Hallar tamaño de la muestra
 
@@ -233,9 +391,9 @@ n_var_meanbp
 
 **Situación:** Según la base de datos SUPPORT2, ¿cuál es la probabilidad de que, al seleccionar aleatoriamente 479 pacientes, la proporción muestral de fallecimientos hospitalarios sea **superior al 30%**? Se plantea el 30% como un umbral hipotético para estudiar la variabilidad muestral, **no** como un límite clínico establecido.
 
-**Fundamento:** Se considera la base de datos completa como población de referencia. Para una variable dicotómica, la proporción muestral $\hat p$ se aproxima a una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes. Siguiendo el procedimiento del proyecto de ejemplo, se utiliza la desviación estándar $\sqrt{\pi(1-\pi)/n}$, **sin corrección por población finita**.
+**Fundamento:** Se considera la base de datos completa como población de referencia. Para una variable de dos valores 0 y 1, la proporción muestral $\hat p$ se aproxima a una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes. Siguiendo el procedimiento estudiado en clase, se utiliza la desviación estándar $\sqrt{\pi(1-\pi)/n}$
 
-$$ \hat p\ \overset{}{\sim}\ N\left(\pi,\;\sqrt{\frac{\pi(1-\pi)}{n}}\right) $$
+$$ p\ \overset{}{\sim}\ N\left(\pi,\;\sqrt{\frac{\pi(1-\pi)}{n}}\right) $$
 
 **1. Proporción poblacional:**
 
@@ -269,7 +427,7 @@ Como $n\pi$ y $n(1-\pi)$ son mayores que 10, se considera adecuada la aproximaci
 
 **3. Probabilidad solicitada:**
 
-$$ P(\hat p>0.30) $$
+$$ P(p>0.30) $$
 
 ```{r}
 umbral_c3 <- 0.30 
