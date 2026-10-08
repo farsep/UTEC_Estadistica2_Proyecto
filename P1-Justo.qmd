@@ -146,7 +146,7 @@ n_hospdead = 422
 ### Tabla de tamaños de muestra finales
 
 | Variable | Tipo | Desviación o proporción | Tolerancia | n (hallado con el código) |
-|---------------|---------------|---------------|---------------|---------------|
+|---------------|---------------|----------------------------|---------------|-----------------------------------|
 | age | Cuantitativa | 15.5937 | 1.5 | 456 |
 | meanbp | Cuantitativa | 27.6877 | 2.6 | 479 |
 | hrt | Cuantitativa | 31.5593 | 3 | 467 |
@@ -228,6 +228,90 @@ n_var_meanbp
 ```
 
 ### Caso 3: Proporción Muestral
+
+**Variable de interés:** `hospdead` (fallecimiento durante la hospitalización: 1 = falleció, 0 = no falleció).
+
+**Situación:** Según la base de datos SUPPORT2, ¿cuál es la probabilidad de que, al seleccionar aleatoriamente 479 pacientes, la proporción muestral de fallecimientos hospitalarios sea **superior al 30%**? Se plantea el 30% como un umbral hipotético para estudiar la variabilidad muestral, **no** como un límite clínico establecido.
+
+**Fundamento:** Se considera la base de datos completa como población de referencia. Para una variable dicotómica, la proporción muestral $\hat p$ se aproxima a una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes. Siguiendo el procedimiento del proyecto de ejemplo, se utiliza la desviación estándar $\sqrt{\pi(1-\pi)/n}$, **sin corrección por población finita**.
+
+$$ \hat p\ \overset{}{\sim}\ N\left(\pi,\;\sqrt{\frac{\pi(1-\pi)}{n}}\right) $$
+
+**1. Proporción poblacional:**
+
+```{r}
+#Número de pacientes con dato disponible para mortalidad hospitalaria 
+N_c3 <- sum(!is.na(DF$hospdead)) 
+fallecidos_c3 <- sum(DF$hospdead == 1, na.rm = TRUE) 
+pi_c3 <- fallecidos_c3 / N_c3  
+cat("Registros válidos:", N_c3, "\n") 
+cat("Fallecidos durante la hospitalización:", fallecidos_c3, "\n") 
+cat("Proporción poblacional (pi):", round(pi_c3, 4), "\n")
+```
+
+Se obtiene una proporción poblacional de aproximadamente $\pi=0.2592$, equivalente al **25.92%** de los registros con información disponible sobre mortalidad hospitalaria.
+
+**2. Distribución muestral y verificación de condiciones:**
+
+```{r}
+n_c3 <- n_final #tamaño calculado en parte 1
+#Parámetros de la distribución
+media_c3 <- pi_c3 
+sigma_c3 <- sqrt(pi_c3 * (1 - pi_c3) / n_c3)  
+cat("Tamaño de muestra:", n_c3, "\n") 
+cat("Media de p estimada:", round(media_c3, 4), "\n") 
+cat("Desviación estándar de p estimada:", round(sigma_c3, 4), "\n") 
+cat("n*pi:", round(n_c3 * pi_c3, 2), "\n") 
+cat("n*(1-pi):", round(n_c3 * (1 - pi_c3), 2), "\n")
+```
+
+Como $n\pi$ y $n(1-\pi)$ son mayores que 10, se considera adecuada la aproximación normal **bajo el supuesto de muestreo aleatorio y observaciones independientes**.
+
+**3. Probabilidad solicitada:**
+
+$$ P(\hat p>0.30) $$
+
+```{r}
+umbral_c3 <- 0.30 
+z_c3 <- (umbral_c3 - media_c3) / sigma_c3 
+P_caso3 <- pnorm(umbral_c3, mean = media_c3,sd = sigma_c3, lower.tail = FALSE)  
+cat("Valor Z:", round(z_c3, 4), "\n") 
+cat("P(p estimada > 0.30) =", round(P_caso3, 4), "\n") 
+cat("Probabilidad en porcentaje:", round(100 * P_caso3, 2), "%\n")
+```
+
+**4. Visualización de la distribución muestral:**
+
+```{r}
+x_c3 <- seq(media_c3 - 4 * sigma_c3,media_c3 + 4 * sigma_c3, length.out = 800) 
+y_c3 <- dnorm(x_c3, mean = media_c3, sd = sigma_c3)  
+plot(x_c3, y_c3, type = "l", lwd = 2, col = "#24548F",xlab = "Proporción muestral de fallecimientos",ylab = "Densidad",main = "Distribución muestral de la mortalidad hospitalaria", sub = paste0("n = ", n_c3, " | P(p>30%) = ", round(P_caso3 * 100, 2), "%"))  
+x_cola <- x_c3[x_c3 >= umbral_c3] 
+y_cola <- dnorm(x_cola, mean = media_c3, sd = sigma_c3) 
+polygon(c(umbral_c3, x_cola, max(x_cola)), c(0, y_cola, 0), col = "#EFAC99", border = NA) 
+lines(x_c3, y_c3, col = "#24548F", lwd = 2) 
+abline(v = media_c3, col = "#23835C", lty = 2, lwd = 2) 
+abline(v = umbral_c3, col = "#B74B37", lty = 2, lwd = 2) 
+legend("topright", legend = c("Distribución aproximada", "Proporción poblacional",  "Umbral de 30%", "Probabilidad superior al 30%"),col = c("#24548F", "#23835C", "#B74B37", "#EFAC99"),lty = c(1, 2, 2, 1), lwd = c(2, 2, 2, 7), cex = 0.75,bty = "n")
+```
+
+```{r}
+round(100 * P_caso3, 2)
+```
+
+**Interpretación:**
+
+- La probabilidad aproximada de que la proporción de fallecimientos supere el 30% en una muestra aleatoria de **9105** pacientes es **`2.08`%**.
+
+- El gráfico muestra que el valor del 30% queda a la derecha de la proporción poblacional estimada, por lo que representa un resultado relativamente poco frecuente bajo este modelo.
+
+- El caso permite cuantificar la variabilidad muestral de la mortalidad hospitalaria, pero **no demuestra por sí mismo qué factores clínicos o demográficos causan o se asocian con las muertes**.
+
+- El umbral del 30% se eligió solamente para ilustrar una probabilidad, no por su relevancia clínica.
+
+- La aproximación normal empleada implica un mecanismo de selección aleatorio e independiente.
+
+- Por tratarse de una base histórica de pacientes de centros médicos específicos, los resultados no deben generalizarse automáticamente a todos los pacientes críticos actuales.
 
 ### Caso 4: Razón de Varianzas
 
