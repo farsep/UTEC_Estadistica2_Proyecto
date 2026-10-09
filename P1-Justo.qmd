@@ -395,7 +395,7 @@ n_hospdead = 422
 ### Tabla de tamaños de muestra finales
 
 | Variable | Tipo | Desviación o proporción | Tolerancia | n (hallado con el código) |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | age | Cuantitativa | 15.5937 | 1.5 | 456 |
 | meanbp | Cuantitativa | 27.6877 | 2.6 | 479 |
 | hrt | Cuantitativa | 31.5593 | 3 | 467 |
@@ -482,20 +482,33 @@ n_var_meanbp
 
 **Situación:** Según la base de datos SUPPORT2, ¿cuál es la probabilidad de que, al seleccionar aleatoriamente 479 pacientes, la proporción muestral de fallecimientos hospitalarios sea **superior al 30%**? Se plantea el 30% como un umbral hipotético para estudiar la variabilidad muestral, **no** como un límite clínico establecido.
 
-**Suposiciones y Fundamentación:** Se considera la base de datos completa como población de referencia. Para una variable de dos valores 0 y 1, la proporción muestral $\hat p$ se aproxima a una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes. Siguiendo el procedimiento estudiado en clase, se utiliza la desviación estándar $\sqrt{\pi(1-\pi)/n}$
+**Suposiciones y Fundamentación:** Se considera la base de datos completa como población de referencia. Dado que `hospdead` es una variable dicotómica, la proporción muestral $p$ puede aproximarse mediante una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes.
 
-$$ p\ \overset{}{\sim}\ N\left(\pi,\;\sqrt{\frac{\pi(1-\pi)}{n}}\right) $$
+La distribución muestral de una proporción se expresa como:
+
+$$p \overset{\text{}}{\sim} N(\mu_p,\sigma_p)$$
+
+Donde:
+
+$$\mu_p=\pi
+\qquad \text{y} \qquad
+\sigma_p=\sqrt{\frac{\pi(1-\pi)}{n}}$$
+
+Se supone un muestreo aleatorio con reposición, de modo que las observaciones sean independientes y se utilice la desviación estándar sin corrección por población finita.
 
 **1. Proporción poblacional:**
 
 ```{r}
-#Número de pacientes con dato disponible para mortalidad hospitalaria 
-N_c3 <- sum(!is.na(DF$hospdead)) 
-fallecidos_c3 <- sum(DF$hospdead == 1, na.rm = TRUE) 
-pi_c3 <- fallecidos_c3 / N_c3  
-cat("Registros válidos:", N_c3, "\n") 
-cat("Fallecidos durante la hospitalización:", fallecidos_c3, "\n") 
-cat("Proporción poblacional (pi):", round(pi_c3, 4), "\n")
+#Número de pacientes con información de mortalidad hospitalaria
+N_c3<-sum(!is.na(DF$hospdead))
+fallecidos_c3<-sum(DF$hospdead == 1, na.rm = TRUE)
+
+#Proporción poblacional
+pi_c3<- fallecidos_c3/N_c3
+
+print(paste("Registros válidos:", N_c3))
+print(paste("Fallecidos durante la hospitalización:", fallecidos_c3))
+print(paste("Proporción poblacional (pi):", round(pi_c3, 4)))
 ```
 
 Se obtiene una proporción poblacional de aproximadamente $\pi=0.2592$, equivalente al **25.92%** de los registros con información disponible sobre mortalidad hospitalaria.
@@ -503,49 +516,117 @@ Se obtiene una proporción poblacional de aproximadamente $\pi=0.2592$, equivale
 **2. Distribución muestral y verificación de condiciones:**
 
 ```{r}
-n_c3 <- n_final #tamaño calculado en parte 1
-#Parámetros de la distribución
-media_c3 <- pi_c3 
-sigma_c3 <- sqrt(pi_c3 * (1 - pi_c3) / n_c3)  
-cat("Tamaño de muestra:", n_c3, "\n") 
-cat("Media de p estimada:", round(media_c3, 4), "\n") 
-cat("Desviación estándar de p estimada:", round(sigma_c3, 4), "\n") 
-cat("n*pi:", round(n_c3 * pi_c3, 2), "\n") 
-cat("n*(1-pi):", round(n_c3 * (1 - pi_c3), 2), "\n")
+n_c3<-n_final #Tamaño calculado en la Parte 1
+
+#Parámetros de la distribución muestral
+mu_p_c3 <-pi_c3
+sigma_p_c3<- sqrt(pi_c3*(1 - pi_c3)/n_c3)
+
+print(paste("Tamaño de muestra:", n_c3))
+print(paste("Media de p (mu_p):", round(mu_p_c3, 4)))
+print(paste("Desviación estándar de p (sigma_p):",round(sigma_p_c3,4)))
+print(paste("n*pi:", round(n_c3*pi_c3, 2)))
+print(paste("n*(1-pi):", round(n_c3*(1 - pi_c3),2)))
 ```
 
-Como $n\pi$ y $n(1-\pi)$ son mayores que 10, se considera adecuada la aproximación normal **bajo el supuesto de muestreo aleatorio y observaciones independientes**.
+Como $n\pi$ y $n(1-\pi)$ son mayores que 10, se considera adecuada la aproximación normal bajo los supuestos de muestreo aleatorio con reposición y observaciones independientes.
 
 **3. Probabilidad solicitada:**
 
-$$ P(p>0.30) $$
+Se desea calcular:
+
+$$P(p>0.30)$$
+
+Estandarizando mediante la distribución normal estándar:
+
+$$Z=\frac{p-\mu_p}{\sigma_p}$$
+
+Por tanto:
+
+$$P(p>0.30)=
+P\left(Z>\frac{0.30-\mu_p}{\sigma_p}\right)$$
 
 ```{r}
-umbral_c3 <- 0.30 
-z_c3 <- (umbral_c3 - media_c3) / sigma_c3 
-P_caso3 <- pnorm(umbral_c3, mean = media_c3,sd = sigma_c3, lower.tail = FALSE)  
-cat("Valor Z:", round(z_c3, 4), "\n") 
-cat("P(p estimada > 0.30) =", round(P_caso3, 4), "\n") 
-cat("Probabilidad en porcentaje:", round(100 * P_caso3, 2), "%\n")
+umbral_c3 <- 0.30
+z_c3 <- (umbral_c3 - mu_p_c3) / sigma_p_c3 #Estandarizando
+
+#Calculando probabilidad
+P_caso3 <- pnorm(
+  umbral_c3,
+  mean = mu_p_c3,
+  sd = sigma_p_c3,
+  lower.tail = FALSE
+)
+
+print(paste("Valor Z:", round(z_c3, 4)))
+print(paste("P(p > 0.30) =", round(P_caso3, 4)))
+print(paste("Probabilidad en porcentaje:",round(100 * P_caso3, 2)))
 ```
 
 **4. Visualización de la distribución muestral:**
 
 ```{r}
-x_c3 <- seq(media_c3 - 4 * sigma_c3,media_c3 + 4 * sigma_c3, length.out = 800) 
-y_c3 <- dnorm(x_c3, mean = media_c3, sd = sigma_c3)  
-plot(x_c3, y_c3, type = "l", lwd = 2, col = "#24548F",xlab = "Proporción muestral de fallecimientos",ylab = "Densidad",main = "Distribución muestral de la mortalidad hospitalaria", sub = paste0("n = ", n_c3, " | P(p>30%) = ", round(P_caso3 * 100, 2), "%"))  
-x_cola <- x_c3[x_c3 >= umbral_c3] 
-y_cola <- dnorm(x_cola, mean = media_c3, sd = sigma_c3) 
-polygon(c(umbral_c3, x_cola, max(x_cola)), c(0, y_cola, 0), col = "#EFAC99", border = NA) 
-lines(x_c3, y_c3, col = "#24548F", lwd = 2) 
-abline(v = media_c3, col = "#23835C", lty = 2, lwd = 2) 
-abline(v = umbral_c3, col = "#B74B37", lty = 2, lwd = 2) 
-legend("topright", legend = c("Distribución aproximada", "Proporción poblacional",  "Umbral de 30%", "Probabilidad superior al 30%"),col = c("#24548F", "#23835C", "#B74B37", "#EFAC99"),lty = c(1, 2, 2, 1), lwd = c(2, 2, 2, 7), cex = 0.75,bty = "n")
-```
+x_c3 <- seq(
+  mu_p_c3 - 4 * sigma_p_c3,
+  mu_p_c3 + 4 * sigma_p_c3,
+  length.out = 800
+)
 
-```{r}
-round(100 * P_caso3, 2)
+y_c3 <- dnorm(
+  x_c3,
+  mean=mu_p_c3,
+  sd = sigma_p_c3
+)
+
+plot(
+  x_c3, y_c3,
+  type = "l",
+  lwd = 2,
+  col = "#24548F",
+  xlab = "Proporción muestral de fallecimientos",
+  ylab = "Densidad",
+  main = "Distribución muestral de la mortalidad hospitalaria",
+  sub = paste0(
+    "n = ", n_c3,
+    " | P(p > 30%) = ",
+    round(P_caso3 * 100, 2), "%"
+  )
+)
+
+x_cola <- x_c3[x_c3 >= umbral_c3]
+
+y_cola <- dnorm(
+  x_cola,
+  mean= mu_p_c3,
+  sd = sigma_p_c3
+)
+
+polygon(
+  c(umbral_c3, x_cola, max(x_cola)),
+  c(0, y_cola, 0),
+  col = "#EFAC99",
+  border= NA
+)
+
+lines(x_c3, y_c3, col = "#24548F", lwd = 2)
+
+abline(v= mu_p_c3, col = "#23835C", lty = 2, lwd= 2)
+abline(v= umbral_c3, col = "#B74B37", lty = 2, lwd = 2)
+
+legend(
+  "topright",
+  legend = c(
+    "Distribución aproximada",
+    "Proporción poblacional",
+    "Umbral de 30%",
+    "Probabilidad superior al 30%"
+  ),
+  col = c("#24548F", "#23835C", "#B74B37", "#EFAC99"),
+  lty = c(1,2,2,1),
+  lwd = c(2,2,2,7),
+  cex = 0.75,
+  bty = "n"
+)
 ```
 
 **Interpretación:**
@@ -572,9 +653,7 @@ El umbral **1.25** es un valor de referencia escogido para construir el ejercici
 
 Si los grupos son independientes, cada grupo proviene de una población aproximadamente normal y las varianzas poblacionales son iguales ($\sigma_1^2=\sigma_2^2$), entonces:
 
-$$
-F=\frac{S_1^2}{S_2^2}\sim F(n_1-1,\,n_2-1).
-$$
+$$F=\frac{S_1^2}{S_2^2}\sim F(n_1-1,\,n_2-1).$$
 
 Los grados de libertad son $gl_1=n_1-1$ y $gl_2=n_2-1$. **Los tamaños de los grupos no se fijan en 479**: 479 es el tamaño total y cada grupo tiene su propia cantidad de pacientes.
 
@@ -619,9 +698,7 @@ cat("Total con información válida para este caso:", nrow(datos_f), "\n")
 
 Bajo las condiciones indicadas, se solicita calcular:
 
-$$
-P(F_{gl_1,gl_2}>1.25).
-$$
+$$P(F_{gl_1,gl_2}>1.25).$$
 
 En R, `pf(x, df1, df2)` devuelve la probabilidad acumulada **a la izquierda** de $x$. Por tanto, para el área **a la derecha**, utilizamos `pf(..., lower.tail = FALSE)`.
 
