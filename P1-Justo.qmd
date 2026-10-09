@@ -752,3 +752,105 @@ La probabilidad de que la proporción muestral de fallecimientos en mujeres supe
 Para aplicar la aproximación normal se asume que las dos muestras son aleatorias e independientes. Además, las cantidades esperadas de fallecimientos y no fallecimientos en ambos grupos son mayores que 5, por lo que la aproximación resulta adecuada.
 
 ### Caso 6: Diferencia de Medias
+
+**Escenario:** Se desea comparar la frecuencia cardíaca (`hrt`) de los pacientes que fallecieron durante la hospitalización (`hospdead = 1`) con la de los que sobrevivieron (`hospdead = 0`). Para ello, se consideran dos muestras aleatorias e independientes: 479 pacientes fallecidos y 479 pacientes sobrevivientes. ¿Cuál es la probabilidad de que la frecuencia cardíaca media de la muestra de fallecidos supere a la de la muestra de sobrevivientes en **más de 10 latidos por minuto**?
+
+El umbral de 10 lpm es un valor de referencia escogido para construir el ejercicio de probabilidad; **no** es un valor clínico establecido.
+
+Las medias y desviaciones poblacionales se calculan por separado para cada grupo, considerando la base de datos completa como población.
+
+```{r}
+# Frecuencia cardíaca de cada grupo en la población
+hrt_fallecidos <- DF$hrt[DF$hospdead == 1 & !is.na(DF$hrt)]
+hrt_sobrevivientes <- DF$hrt[DF$hospdead == 0 & !is.na(DF$hrt)]
+
+# Medias y desviaciones poblacionales
+mu_fallecidos <- mean(hrt_fallecidos)
+mu_sobrevivientes <- mean(hrt_sobrevivientes)
+sigma_fallecidos <- sd(hrt_fallecidos)
+sigma_sobrevivientes <- sd(hrt_sobrevivientes)
+
+data.frame(
+  Grupo = c("Fallecidos", "Sobrevivientes"),
+  Total = c(length(hrt_fallecidos), length(hrt_sobrevivientes)),
+  Media = c(mu_fallecidos, mu_sobrevivientes),
+  Desviacion = c(sigma_fallecidos, sigma_sobrevivientes)
+)
+```
+
+Se obtiene que la frecuencia cardíaca media poblacional es `r round(mu_fallecidos, 2)` lpm para los fallecidos y `r round(mu_sobrevivientes, 2)` lpm para los sobrevivientes.
+
+Sean $\bar{x}_1$ y $\bar{x}_2$ las frecuencias cardíacas medias de las muestras de fallecidos y sobrevivientes, respectivamente. Como las desviaciones poblacionales son conocidas y las muestras son grandes ($n_1, n_2 \geq 30$), por el **Teorema del Límite Central** la distribución de la diferencia de medias se aproxima mediante:
+
+$$\bar{x}_1-\bar{x}_2 \sim N\left(
+\mu_1-\mu_2,\
+\sqrt{\frac{\sigma_1^2}{n_1}+
+\frac{\sigma_2^2}{n_2}}
+\right)$$
+
+Se utiliza el tamaño de muestra establecido en la primera parte para ambos grupos:
+
+$$n_1=n_2=479$$
+
+```{r}
+n_fallecidos <- n_final
+n_sobrevivientes <- n_final
+
+media_dif_c6 <- mu_fallecidos - mu_sobrevivientes
+desviacion_dif_c6 <- sqrt(
+  sigma_fallecidos^2 / n_fallecidos +
+  sigma_sobrevivientes^2 / n_sobrevivientes
+)
+
+data.frame(
+  Media = media_dif_c6,
+  Desviacion_estandar = desviacion_dif_c6
+)
+```
+
+La probabilidad solicitada es:
+
+$$P(\bar{x}_1-\bar{x}_2 > 10)$$
+
+```{r}
+diferencia_minima_c6 <- 10
+
+z_c6 <- (diferencia_minima_c6 - media_dif_c6) / desviacion_dif_c6
+
+probabilidad_caso6 <- pnorm(
+  diferencia_minima_c6,
+  mean = media_dif_c6,
+  sd = desviacion_dif_c6,
+  lower.tail = FALSE
+)
+
+cat("Valor Z:", round(z_c6, 4), "\n")
+cat("P(x1 - x2 > 10) =", round(probabilidad_caso6, 4), "\n")
+```
+
+```{r}
+x_c6 <- seq(media_dif_c6 - 4 * desviacion_dif_c6,
+            media_dif_c6 + 4 * desviacion_dif_c6, length.out = 800)
+y_c6 <- dnorm(x_c6, mean = media_dif_c6, sd = desviacion_dif_c6)
+
+plot(x_c6, y_c6, type = "l", lwd = 2, col = "#24548F",
+     xlab = "Diferencia de medias muestrales de hrt (lpm)",
+     ylab = "Densidad",
+     main = "Distribución muestral de la diferencia de medias")
+x_cola_c6 <- x_c6[x_c6 >= diferencia_minima_c6]
+polygon(c(diferencia_minima_c6, x_cola_c6, max(x_cola_c6)),
+        c(0, dnorm(x_cola_c6, media_dif_c6, desviacion_dif_c6), 0),
+        col = "#EFAC99", border = NA)
+lines(x_c6, y_c6, col = "#24548F", lwd = 2)
+abline(v = media_dif_c6, col = "#23835C", lty = 2, lwd = 2)
+abline(v = diferencia_minima_c6, col = "#B74B37", lty = 2, lwd = 2)
+legend("topright",
+       legend = c("Distribución aproximada", "Diferencia poblacional",
+                  "Umbral de 10 lpm", "P(diferencia > 10)"),
+       col = c("#24548F", "#23835C", "#B74B37", "#EFAC99"),
+       lty = c(1, 2, 2, 1), lwd = c(2, 2, 2, 7), cex = 0.75, bty = "n")
+```
+
+La probabilidad de que la frecuencia cardíaca media de la muestra de fallecidos supere a la de sobrevivientes en más de 10 lpm es `r round(probabilidad_caso6, 4)`, equivalente aproximadamente a `r round(100 * probabilidad_caso6, 2)`%. Como la diferencia poblacional es de unos `r round(media_dif_c6, 2)` lpm, observar una diferencia mayor a 10 lpm en las muestras sería poco frecuente.
+
+**Suposiciones:** las dos muestras son aleatorias e independientes entre sí (un paciente no puede estar a la vez en ambos grupos). Las desviaciones poblacionales se consideran conocidas porque se calculan a partir de la base completa. No es necesario que `hrt` siga una distribución normal, ya que con $n_1 = n_2 = 479$ el Teorema del Límite Central garantiza que la diferencia de medias muestrales es aproximadamente normal. Además, $n = 479$ es mucho menor que el tamaño de cada grupo en la población (`r length(hrt_fallecidos)` y `r length(hrt_sobrevivientes)`), por lo que no se requiere el factor de corrección para población finita.
