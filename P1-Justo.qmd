@@ -482,7 +482,7 @@ n_var_meanbp
 
 **Situación:** Según la base de datos SUPPORT2, ¿cuál es la probabilidad de que, al seleccionar aleatoriamente 479 pacientes, la proporción muestral de fallecimientos hospitalarios sea **superior al 30%**? Se plantea el 30% como un umbral hipotético para estudiar la variabilidad muestral, **no** como un límite clínico establecido.
 
-**Fundamento:** Se considera la base de datos completa como población de referencia. Para una variable de dos valores 0 y 1, la proporción muestral $\hat p$ se aproxima a una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes. Siguiendo el procedimiento estudiado en clase, se utiliza la desviación estándar $\sqrt{\pi(1-\pi)/n}$
+**Suposiciones y Fundamentación:** Se considera la base de datos completa como población de referencia. Para una variable de dos valores 0 y 1, la proporción muestral $\hat p$ se aproxima a una distribución normal cuando $n\pi$ y $n(1-\pi)$ son suficientemente grandes. Siguiendo el procedimiento estudiado en clase, se utiliza la desviación estándar $\sqrt{\pi(1-\pi)/n}$
 
 $$ p\ \overset{}{\sim}\ N\left(\pi,\;\sqrt{\frac{\pi(1-\pi)}{n}}\right) $$
 
@@ -550,17 +550,8 @@ round(100 * P_caso3, 2)
 
 **Interpretación:**
 
-- La probabilidad aproximada de que la proporción de fallecimientos supere el 30% en una muestra aleatoria de **9105** pacientes es **`2.08`%**.
-
-- El gráfico muestra que el valor del 30% queda a la derecha de la proporción poblacional estimada, por lo que representa un resultado relativamente poco frecuente bajo este modelo.
-
-- El caso permite cuantificar la variabilidad muestral de la mortalidad hospitalaria, pero **no demuestra por sí mismo qué factores clínicos o demográficos causan o se asocian con las muertes**.
-
-- El umbral del 30% se eligió solamente para ilustrar una probabilidad, no por su relevancia clínica.
-
-- La aproximación normal empleada implica un mecanismo de selección aleatorio e independiente.
-
-- Por tratarse de una base histórica de pacientes de centros médicos específicos, los resultados no deben generalizarse automáticamente a todos los pacientes críticos actuales.
+- La probabilidad aproximada de que la proporción de fallecimientos supere el 30% en una muestra aleatoria de 9105 pacientes es de 2.08%, lo que representa un evento poco frecuente bajo el modelo utilizado. Este umbral se eligió únicamente con fines ilustrativos, sin un criterio clínico específico.
+- El análisis permite cuantificar la variabilidad muestral mediante una aproximación normal que supone observaciones aleatorias e independientes. Sin embargo, no permite establecer relaciones causales ni generalizar automáticamente los resultados a todos los pacientes críticos actuales, dado que se emplearon datos históricos de centros médicos específicos.
 
 ### Caso 4: Razón de Varianzas
 
